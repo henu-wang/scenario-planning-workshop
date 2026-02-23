@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario Planning Workshop - Interactive 5-Step Strategic Planning Tool</title>
+    <meta name="description" content="Interactive 5-step scenario planning tool. Input your decision context, generate scenario matrices, evaluate each scenario, and build robust strategies.">
+    <meta name="keywords" content="scenario planning, strategic planning, decision making, scenario matrix, risk assessment, strategy workshop">
+    <meta property="og:title" content="Scenario Planning Workshop - Interactive 5-Step Tool">
+    <meta property="og:description" content="Interactive scenario planning tool. Generate scenario matrices and evaluate strategies across multiple futures.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://henu-wang.github.io/scenario-planning-workshop/">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://henu-wang.github.io/scenario-planning-workshop/">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #7c2d12 0%, #c2410c 50%, #ea580c 100%); }
+        .step-indicator.active { background: #ea580c; color: white; }
+        .step-indicator.completed { background: #22c55e; color: white; }
+        .step-line.active { background: #ea580c; }
+        .step-line.completed { background: #22c55e; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
+        textarea { resize: vertical; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<header class="gradient-bg text-white">
+    <nav class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="#" class="text-xl font-bold">Scenario Planning Workshop</a>
+        <a href="https://keeprule.com/en/scenarios" class="bg-white/20 px-3 py-1 rounded-full text-sm font-medium hover:bg-white/30 transition">KeepRule</a>
+    </nav>
+    <div class="max-w-4xl mx-auto px-4 py-12 md:py-16 text-center">
+        <h1 class="text-3xl md:text-5xl font-bold mb-4">Interactive Scenario<br><span class="text-orange-200">Planning Workshop</span></h1>
+        <p class="text-orange-200 text-lg mb-6">5 steps to stress-test your decisions across multiple futures</p>
+        <button onclick="startWorkshop()" class="bg-white text-orange-700 px-8 py-3 rounded-full font-semibold text-lg hover:bg-orange-50 transition">Start Planning</button>
+    </div>
+</header>
+
+<!-- Progress Steps -->
+<div class="max-w-4xl mx-auto px-4 py-8" id="progress-bar">
+    <div class="flex items-center justify-between relative">
+        <div class="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-0"></div>
+        ${[1,2,3,4,5].map((s,i) => `
+            <div class="flex flex-col items-center relative z-10">
+                <div id="step-ind-${s}" class="step-indicator w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-gray-300 bg-white text-gray-400">${s}</div>
+                <div class="text-xs mt-1 text-gray-500 hidden md:block" id="step-label-${s}"></div>
+            </div>
+        `).join('')}
+    </div>
+</div>
+
+<!-- Step Panels -->
+<div class="max-w-4xl mx-auto px-4 pb-16">
+    <!-- Step 1: Define Decision -->
+    <div id="step-1" class="step-panel hidden fade-in">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-2">Step 1: Define Your Decision</h2>
+            <p class="text-gray-500 mb-6">What decision are you facing? Describe the context and what you need to decide.</p>
+            <div class="space-y-4">
+                <div><label class="block text-sm font-medium mb-1">Decision Title</label><input type="text" id="s1-title" placeholder="e.g., Should we expand into the European market?" class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"></div>
+                <div><label class="block text-sm font-medium mb-1">Context & Background</label><textarea id="s1-context" rows="3" placeholder="Describe the current situation, constraints, and goals..." class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"></textarea></div>
+                <div><label class="block text-sm font-medium mb-1">Time Horizon</label>
+                    <select id="s1-horizon" class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none">
+                        <option>6 months</option><option>1 year</option><option selected>2-3 years</option><option>5+ years</option>
+                    </select>
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Key Stakeholders</label><input type="text" id="s1-stakeholders" placeholder="e.g., leadership team, investors, customers" class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"></div>
+                <button onclick="nextStep(2)" class="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition">Next: Identify Uncertainties &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Key Uncertainties -->
+    <div id="step-2" class="step-panel hidden fade-in">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-2">Step 2: Identify Key Uncertainties</h2>
+            <p class="text-gray-500 mb-6">What are the two most impactful and uncertain factors? These will form the axes of your scenario matrix.</p>
+            <div class="space-y-6">
+                <div class="bg-orange-50 rounded-xl p-4">
+                    <h3 class="font-bold text-orange-800 mb-3">Uncertainty Axis 1 (Horizontal)</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="s2-u1-name" placeholder="e.g., Market demand" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs text-gray-500">Low End</label><input type="text" id="s2-u1-low" placeholder="e.g., Demand stays flat" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                            <div><label class="text-xs text-gray-500">High End</label><input type="text" id="s2-u1-high" placeholder="e.g., Demand surges 3x" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-4">
+                    <h3 class="font-bold text-orange-800 mb-3">Uncertainty Axis 2 (Vertical)</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="s2-u2-name" placeholder="e.g., Regulatory environment" class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="text-xs text-gray-500">Low End</label><input type="text" id="s2-u2-low" placeholder="e.g., Strict regulations" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                            <div><label class="text-xs text-gray-500">High End</label><input type="text" id="s2-u2-high" placeholder="e.g., Open/deregulated" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="nextStep(1)" class="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition">&larr; Back</button>
+                    <button onclick="generateMatrix()" class="flex-1 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition">Generate Scenario Matrix &rarr;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: Scenario Matrix -->
+    <div id="step-3" class="step-panel hidden fade-in">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-2">Step 3: Name & Describe Your Scenarios</h2>
+            <p class="text-gray-500 mb-6">Give each scenario a memorable name and describe what that world looks like.</p>
+            <div class="mb-6">
+                <div class="grid grid-cols-2 gap-4" id="matrix-visual">
+                    <!-- Generated dynamically -->
+                </div>
+            </div>
+            <div class="space-y-4" id="scenario-inputs">
+                <!-- Generated dynamically -->
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="nextStep(2)" class="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition">&larr; Back</button>
+                <button onclick="nextStep(4)" class="flex-1 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition">Evaluate Scenarios &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4: Evaluate -->
+    <div id="step-4" class="step-panel hidden fade-in">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-2">Step 4: Evaluate Each Scenario</h2>
+            <p class="text-gray-500 mb-6">For each scenario, assess the likelihood, impact, and your preparedness.</p>
+            <div class="space-y-6" id="eval-inputs"></div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="nextStep(3)" class="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition">&larr; Back</button>
+                <button onclick="generateReport()" class="flex-1 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition">Generate Strategy Report &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 5: Strategy Report -->
+    <div id="step-5" class="step-panel hidden fade-in">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-2">Step 5: Your Scenario Strategy Report</h2>
+            <p class="text-gray-500 mb-6">Based on your analysis, here is your scenario planning summary.</p>
+            <div id="report-content"></div>
+            <div class="mt-8 bg-orange-50 rounded-xl p-6 text-center">
+                <h3 class="font-bold text-lg mb-2">Take Your Scenario Planning Further</h3>
+                <p class="text-gray-600 text-sm mb-4">KeepRule provides advanced scenario planning tools with AI-assisted analysis and team collaboration.</p>
+                <a href="https://keeprule.com/en/scenarios" class="inline-block bg-orange-600 text-white px-6 py-2 rounded-full font-medium hover:bg-orange-700 transition">Try KeepRule Scenarios</a>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="nextStep(4)" class="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition">&larr; Back to Edit</button>
+                <button onclick="window.print()" class="flex-1 bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition">Print Report</button>
+                <button onclick="resetWorkshop()" class="flex-1 border border-orange-300 text-orange-700 py-3 rounded-lg font-medium hover:bg-orange-50 transition">Start Over</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-slate-900 text-gray-400 py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="grid md:grid-cols-3 gap-8 mb-8">
+            <div><h3 class="text-white text-lg font-bold mb-3">Scenario Planning Workshop</h3><p class="text-sm">Interactive 5-step scenario planning for strategic decisions.</p></div>
+            <div><h3 class="text-white font-medium mb-3">KeepRule</h3><ul class="text-sm space-y-2">
+                <li><a href="https://keeprule.com/en/masters" class="hover:text-orange-400 transition">Investment Masters</a></li>
+                <li><a href="https://keeprule.com/en/principles" class="hover:text-orange-400 transition">Decision Principles</a></li>
+                <li><a href="https://keeprule.com/en/scenarios" class="hover:text-orange-400 transition">Scenario Planning</a></li>
+            </ul></div>
+            <div><h3 class="text-white font-medium mb-3">Explore More</h3><ul class="text-sm space-y-2">
+                <li><a href="https://henu-wang.github.io/buffett-wisdom-daily/" class="hover:text-orange-400 transition">Buffett Wisdom Daily</a></li>
+                <li><a href="https://henu-wang.github.io/decision-making-templates/" class="hover:text-orange-400 transition">Decision Templates</a></li>
+                <li><a href="https://henu-wang.github.io/cognitive-bias-test/" class="hover:text-orange-400 transition">Cognitive Bias Test</a></li>
+                <li><a href="https://henu-wang.github.io/mental-model-flashcards/" class="hover:text-orange-400 transition">Mental Model Flashcards</a></li>
+                <li><a href="https://henu-wang.github.io/investment-calculator-suite/" class="hover:text-orange-400 transition">Investment Calculators</a></li>
+                <li><a href="https://henu-wang.github.io/decision-making-timeline/" class="hover:text-orange-400 transition">Decision Science Timeline</a></li>
+                <li><a href="https://henu-wang.github.io/cognitive-bias-guide/" class="hover:text-orange-400 transition">Cognitive Bias Guide</a></li>
+                <li><a href="https://henu-wang.github.io/decision-frameworks/" class="hover:text-orange-400 transition">Decision Frameworks</a></li>
+            </ul></div>
+        </div>
+        <div class="border-t border-slate-700 pt-6 text-center text-sm">&copy; 2025 Scenario Planning Workshop. For educational purposes.</div>
+    </div>
+</footer>
+
+<script>
+const stepLabels = ['Define','Uncertainties','Scenarios','Evaluate','Strategy'];
+let currentStep = 0;
+const scenarioColors = ['#3b82f6','#22c55e','#f59e0b','#ef4444'];
+const scenarioLabels = ['Top-Left','Top-Right','Bottom-Left','Bottom-Right'];
+
+stepLabels.forEach((l,i) => document.getElementById('step-label-'+(i+1)).textContent = l);
+
+function startWorkshop() { nextStep(1); }
+
+function nextStep(step) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('step-' + step).classList.remove('hidden');
+    currentStep = step;
+    for (let i = 1; i <= 5; i++) {
+        const ind = document.getElementById('step-ind-' + i);
+        ind.className = 'step-indicator w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm';
+        if (i < step) ind.classList.add('completed');
+        else if (i === step) ind.classList.add('active');
+        else { ind.classList.add('border-2','border-gray-300','bg-white','text-gray-400'); }
+    }
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function generateMatrix() {
+    const u1 = document.getElementById('s2-u1-name').value || 'Uncertainty 1';
+    const u1low = document.getElementById('s2-u1-low').value || 'Low';
+    const u1high = document.getElementById('s2-u1-high').value || 'High';
+    const u2 = document.getElementById('s2-u2-name').value || 'Uncertainty 2';
+    const u2low = document.getElementById('s2-u2-low').value || 'Low';
+    const u2high = document.getElementById('s2-u2-high').value || 'High';
+
+    const scenarios = [
+        {pos:'Top-Left', u1v:u1low, u2v:u2high, color:'#3b82f6', bg:'#eff6ff'},
+        {pos:'Top-Right', u1v:u1high, u2v:u2high, color:'#22c55e', bg:'#f0fdf4'},
+        {pos:'Bottom-Left', u1v:u1low, u2v:u2low, color:'#f59e0b', bg:'#fffbeb'},
+        {pos:'Bottom-Right', u1v:u1high, u2v:u2low, color:'#ef4444', bg:'#fef2f2'}
+    ];
+
+    document.getElementById('matrix-visual').innerHTML = `
+        <div class="col-span-2 text-center text-sm font-medium text-gray-500 mb-1">&uarr; ${u2}: ${u2high}</div>
+        ${scenarios.slice(0,2).map(s => `<div class="rounded-xl p-4 border-2 text-center" style="border-color:${s.color};background:${s.bg}">
+            <div class="text-xs font-medium" style="color:${s.color}">${s.u1v} + ${s.u2v}</div>
+            <input type="text" id="s3-name-${scenarios.indexOf(s)}" placeholder="Scenario name..." class="w-full text-center font-bold mt-1 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-400">
+        </div>`).join('')}
+        <div class="text-xs text-gray-400 text-left">&larr; ${u1}: ${u1low}</div>
+        <div class="text-xs text-gray-400 text-right">${u1}: ${u1high} &rarr;</div>
+        ${scenarios.slice(2).map(s => `<div class="rounded-xl p-4 border-2 text-center" style="border-color:${s.color};background:${s.bg}">
+            <div class="text-xs font-medium" style="color:${s.color}">${s.u1v} + ${s.u2v}</div>
+            <input type="text" id="s3-name-${scenarios.indexOf(s)}" placeholder="Scenario name..." class="w-full text-center font-bold mt-1 bg-transparent border-0 outline-none text-gray-800 placeholder-gray-400">
+        </div>`).join('')}
+        <div class="col-span-2 text-center text-sm font-medium text-gray-500 mt-1">&darr; ${u2}: ${u2low}</div>
+    `;
+
+    document.getElementById('scenario-inputs').innerHTML = scenarios.map((s, i) => `
+        <div class="border-l-4 pl-4 py-2" style="border-color:${s.color}">
+            <div class="text-sm font-medium" style="color:${s.color}">Scenario ${i+1}: ${s.u1v} + ${s.u2v}</div>
+            <textarea id="s3-desc-${i}" rows="2" placeholder="Describe what this world looks like..." class="w-full border rounded-lg px-3 py-2 mt-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+        </div>
+    `).join('');
+
+    nextStep(3);
+}
+
+function buildEvalInputs() {
+    const html = [0,1,2,3].map(i => {
+        const name = document.getElementById('s3-name-' + i)?.value || `Scenario ${i+1}`;
+        return `<div class="border rounded-xl p-4" style="border-color:${scenarioColors[i]}">
+            <h3 class="font-bold mb-3" style="color:${scenarioColors[i]}">${name}</h3>
+            <div class="grid md:grid-cols-3 gap-3">
+                <div><label class="text-xs font-medium text-gray-500">Likelihood (1-10)</label><input type="number" min="1" max="10" id="s4-like-${i}" value="5" class="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                <div><label class="text-xs font-medium text-gray-500">Impact (1-10)</label><input type="number" min="1" max="10" id="s4-impact-${i}" value="5" class="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                <div><label class="text-xs font-medium text-gray-500">Preparedness (1-10)</label><input type="number" min="1" max="10" id="s4-prep-${i}" value="5" class="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-orange-500 outline-none"></div>
+            </div>
+            <div class="mt-3"><label class="text-xs font-medium text-gray-500">Strategy for This Scenario</label><textarea id="s4-strat-${i}" rows="2" placeholder="What would you do if this scenario unfolds?" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm focus:ring-2 focus:ring-orange-500 outline-none"></textarea></div>
+        </div>`;
+    }).join('');
+    document.getElementById('eval-inputs').innerHTML = html;
+}
+
+// Override nextStep(4) to build eval inputs
+const origNext = nextStep;
+nextStep = function(step) {
+    if (step === 4) buildEvalInputs();
+    origNext(step);
+};
+
+function generateReport() {
+    const title = document.getElementById('s1-title').value || 'Strategic Decision';
+    const context = document.getElementById('s1-context').value || '';
+    const horizon = document.getElementById('s1-horizon').value;
+    const u1 = document.getElementById('s2-u1-name').value || 'Uncertainty 1';
+    const u2 = document.getElementById('s2-u2-name').value || 'Uncertainty 2';
+
+    let scenarioData = [];
+    for (let i = 0; i < 4; i++) {
+        scenarioData.push({
+            name: document.getElementById('s3-name-' + i)?.value || `Scenario ${i+1}`,
+            desc: document.getElementById('s3-desc-' + i)?.value || '',
+            likelihood: +(document.getElementById('s4-like-' + i)?.value || 5),
+            impact: +(document.getElementById('s4-impact-' + i)?.value || 5),
+            preparedness: +(document.getElementById('s4-prep-' + i)?.value || 5),
+            strategy: document.getElementById('s4-strat-' + i)?.value || '',
+            color: scenarioColors[i]
+        });
+    }
+
+    const highRisk = scenarioData.filter(s => s.likelihood * s.impact > 40 && s.preparedness < 6);
+    const mostLikely = [...scenarioData].sort((a,b) => b.likelihood - a.likelihood)[0];
+
+    document.getElementById('report-content').innerHTML = `
+        <div class="bg-gray-50 rounded-xl p-4 mb-6">
+            <h3 class="font-bold text-lg">${title}</h3>
+            <p class="text-sm text-gray-600 mt-1">${context}</p>
+            <div class="text-xs text-gray-500 mt-2">Time Horizon: ${horizon} | Key Axes: ${u1} x ${u2}</div>
+        </div>
+
+        <h3 class="font-bold text-lg mb-3">Scenario Assessment</h3>
+        <div class="space-y-3 mb-6">
+            ${scenarioData.map(s => {
+                const risk = s.likelihood * s.impact;
+                const riskLabel = risk > 60 ? 'Critical' : risk > 40 ? 'High' : risk > 20 ? 'Medium' : 'Low';
+                const riskColor = risk > 60 ? 'text-red-600' : risk > 40 ? 'text-orange-600' : risk > 20 ? 'text-yellow-600' : 'text-green-600';
+                return `<div class="border rounded-xl p-4" style="border-color:${s.color}">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold" style="color:${s.color}">${s.name}</span>
+                        <span class="text-sm font-medium ${riskColor}">${riskLabel} Risk (${risk})</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-2">${s.desc}</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs text-center mb-2">
+                        <div class="bg-gray-100 rounded p-2">Likelihood: <strong>${s.likelihood}/10</strong></div>
+                        <div class="bg-gray-100 rounded p-2">Impact: <strong>${s.impact}/10</strong></div>
+                        <div class="bg-gray-100 rounded p-2">Preparedness: <strong>${s.preparedness}/10</strong></div>
+                    </div>
+                    ${s.strategy ? `<div class="bg-orange-50 rounded-lg p-2 text-sm"><strong>Strategy:</strong> ${s.strategy}</div>` : ''}
+                </div>`;
+            }).join('')}
+        </div>
+
+        <h3 class="font-bold text-lg mb-3">Key Insights</h3>
+        <div class="space-y-3 mb-6">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="font-bold text-blue-800 text-sm">Most Likely Scenario</div>
+                <div class="text-blue-700">${mostLikely.name} (Likelihood: ${mostLikely.likelihood}/10)</div>
+            </div>
+            ${highRisk.length > 0 ? `<div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                <div class="font-bold text-red-800 text-sm">Attention Needed - High Risk, Low Preparedness</div>
+                <div class="text-red-700">${highRisk.map(s => s.name).join(', ')}</div>
+            </div>` : `<div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div class="font-bold text-green-800 text-sm">Good News</div>
+                <div class="text-green-700">No scenario combines high risk with low preparedness.</div>
+            </div>`}
+        </div>
+
+        <h3 class="font-bold text-lg mb-3">Recommended Actions</h3>
+        <div class="bg-gray-50 rounded-xl p-4">
+            <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                <li><strong>Prioritize preparation</strong> for "${mostLikely.name}" as the most likely scenario.</li>
+                ${highRisk.length > 0 ? `<li><strong>Urgently address</strong> preparedness gaps for: ${highRisk.map(s=>s.name).join(', ')}.</li>` : ''}
+                <li><strong>Identify robust strategies</strong> that work well across multiple scenarios.</li>
+                <li><strong>Set trigger points</strong> - what early signals would indicate each scenario is unfolding?</li>
+                <li><strong>Review quarterly</strong> - reassess likelihood and preparedness as conditions change.</li>
+            </ol>
+        </div>
+    `;
+    nextStep(5);
+}
+
+function resetWorkshop() {
+    document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+    document.querySelectorAll('input[type="number"]').forEach(el => el.value = '5');
+    nextStep(1);
+}
+</script>
+</body>
+</html>
